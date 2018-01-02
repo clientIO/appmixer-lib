@@ -6,5 +6,6 @@ module.exports = {
         object: require('./util/object'),
         component: require('./util/component'),
         PagingAggregator: require('./util/paging-aggregator')
-    }
+    },
+    apiDriver: require('./api-driver')
 };
