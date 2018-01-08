@@ -1,7 +1,5 @@
 'use strict';
 
-// testing (2) no-cache for Docker
-
 module.exports = {
     apiDriver: require('./api-driver'),
     db: require('./db/db'),
