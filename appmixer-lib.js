@@ -8,6 +8,7 @@ module.exports = {
         HttpError: require('./util/http-error'),
         object: require('./util/object'),
         component: require('./util/component'),
+        flow: require('./util/flow'),
         PagingAggregator: require('./util/paging-aggregator')
     }
 };
