@@ -1,6 +1,8 @@
 'use strict';
 const check = require('check-types');
-const MongoClient = require('mongodb').MongoClient;
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
+const ObjectID = mongodb.ObjectID;
 const Promise = require('bluebird');
 
 let db = null;
@@ -11,6 +13,8 @@ module.exports.db = function() {
     }
     return db;
 };
+
+module.exports.ObjectID = ObjectID;
 
 /**
  * Connect to Mongo DB.
