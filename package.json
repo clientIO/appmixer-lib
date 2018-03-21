@@ -8,9 +8,9 @@
     },
     "dependencies": {
         "bluebird": "^3.5.1",
-        "boom": "^4.2.0",
-        "handlebars": "^4.0.5",
+        "boom": "^7.2.0",
         "check-types": "^7.1.5",
+        "handlebars": "^4.0.5",
         "metrohash": "^2.3.0",
         "mongodb": "^2.2.33",
         "request": "^2.67.0"
