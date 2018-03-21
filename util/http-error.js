@@ -70,6 +70,9 @@ let HttpError = {
         if (typeof err === 'object' && err.output && err.output.statusCode) {
             return err;
         }
+        if (typeof err === 'object' && err.statusCode) {
+            return new Boom(err.message ? err.message : 'Error', err);
+        }
         return HttpError.badRequest(err);
     },
 
