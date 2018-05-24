@@ -31,10 +31,6 @@ module.exports.connect = async function(connection) {
         return db;
     }
 
-    console.log('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-    console.log('CONNECTION', connection);
-    console.log('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-
     check.assert.object(connection, 'Invalid connection object.');
     if (connection.uri) {
         check.assert.string(connection.uri, 'Invalid connection.uri');
@@ -66,10 +62,6 @@ module.exports.connect = async function(connection) {
             }
         );
     }
-
-    console.log('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-    console.log('options', options);
-    console.log('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
 
     db = await MongoClient.connect(uri, options);
     return db;
