@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 /**
  * Returns generator, which loops over unique input links
@@ -43,9 +43,57 @@ function* allInputLinks(source, checkUniqueIdPort = true) {
     }
 }
 
+/**
+ *
+ * @param {Flow} flow
+ * @param {string} cid - component Id
+ * @param {string} outputPort
+ * @return {Iterator<*>}
+ */
+function* allOutputLinks(flow, cid, outputPort) {
+
+    // TODO bacha na to, ze uzivatel muze udelat 2 linky z jednoho output portu do jednoho
+    // input portu a tim rict, ze tu zpravu chce zdvojit
+
+    const descriptor = flow.getFlowDescriptor();
+    for (let componentId in descriptor) {
+        if (!descriptor.hasOwnProperty(componentId)) {
+            continue;
+        }
+
+        let source = descriptor[componentId].source;
+        for (let inputPort in source) {
+            if (!source.hasOwnProperty(inputPort)) {
+                continue;
+            }
+
+            let sourceInput = source[inputPort];
+            for (let sourceComponentId in sourceInput) {
+                if (!sourceInput.hasOwnProperty(sourceComponentId)) {
+                    continue;
+                }
+
+                if (sourceComponentId !== cid) {
+                    continue;
+                }
+
+                const ports = Array.isArray(sourceInput[sourceComponentId]) ?
+                    sourceInput[sourceComponentId] : [sourceInput[sourceComponentId]];
+
+                if (ports.indexOf(outputPort) !== -1) {
+                    yield {
+                        componentId,
+                        inputPort
+                    };
+                }
+            }
+        }
+    }
+}
 
 module.exports = {
     ComponentDescriptor: {
-        allInputLinks
-    }    
+        allInputLinks,
+        allOutputLinks
+    }
 };

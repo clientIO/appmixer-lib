@@ -12,6 +12,7 @@ module.exports = {
         object: require('./util/object'),
         component: require('./util/component'),
         flow: require('./util/flow'),
-        PagingAggregator: require('./util/paging-aggregator')
+        PagingAggregator: require('./util/paging-aggregator'),
+        promise: require('./util/promise')
     }
 };

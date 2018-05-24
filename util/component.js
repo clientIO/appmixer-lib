@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const metrohash128 = require('metrohash').metrohash128;
 const objectUtil = require('./object');
