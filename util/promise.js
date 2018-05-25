@@ -1,5 +1,6 @@
 'use strict';
 const Promise = require('bluebird');
+const check = require('check-types');
 
 /**
  * This is a variation of classic Promise.all function. Where Promise.all is fail fast -
@@ -47,20 +48,48 @@ module.exports.all = async promises => {
  * @param {Object} object
  * @param {function} callback
  * @return {Promise<Array>}
+ * @throws Error
  */
-module.exports.mapProperties = async (object, callback) => {
+module.exports.mapKeys = async (object, callback) => {
+
+    check.assert.object(object, 'Invalid object.');
+    check.assert.function(callback, 'Invalid callback function');
 
     let results = [];
-    return Promise.map(Object.keys(object), async property => {
-        return Promise.resolve(callback(property)).reflect();
+    return Promise.map(Object.keys(object), async key => {
+        return Promise.resolve(callback(key)).reflect();
     }).each(inspection => {
-        if (!inspection.isFulFilled()) {
+        if (!inspection.isFulfilled()) {
             throw inspection.reason();
         }
-        // TODO
-        console.log('inspection', inspection);
         results.push(inspection.value());
     }).then(() => {
         return results;
     });
-}
+};
+
+/**
+ * Like Promise.map but again - let all promises finish and then throw an error if one of
+ * the promises failed. Return result of each promise in an array otherwise.
+ * @param {Object} object
+ * @param {function} callback
+ * @return {Promise<Array>}
+ * @throws Error
+ */
+module.exports.mapProperties = async (object, callback) => {
+
+    check.assert.object(object, 'Invalid object.');
+    check.assert.function(callback, 'Invalid callback function');
+
+    let results = [];
+    return Promise.map(Object.keys(object), async key => {
+        return Promise.resolve(callback(object[key])).reflect();
+    }).each(inspection => {
+        if (!inspection.isFulfilled()) {
+            throw inspection.reason();
+        }
+        results.push(inspection.value());
+    }).then(() => {
+        return results;
+    });
+};
