@@ -5,6 +5,7 @@ const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
 const Promise = require('bluebird');
 const fs = require('fs');
+const Logger = require('mongodb').Logger;
 
 let db = null;
 module.exports.db = function() {
@@ -23,9 +24,17 @@ module.exports.ObjectID = ObjectID;
  * @param {string} connection.host
  * @param {number} connection.port
  * @param {string} connection.dbName
+ * @param {string} connection.uri
+ * @param {string} connection.sslCAPath
+ * @param {boolean} connection.sslValidate
  * @return {Promise}
  */
 module.exports.connect = async function(connection) {
+
+    // Set debug level
+    if (process.env.LOG_LEVEL) {
+        Logger.setLevel(process.env.LOG_LEVEL);
+    }
 
     if (db !== null) {
         return db;
@@ -48,19 +57,13 @@ module.exports.connect = async function(connection) {
 
     // file to cert
     if (connection.sslCAPath) {
-        let certFileBuf = fs.readFileSync(connection.sslCAPath);
-        Object.assign(options, uri.includes('replicaSet') ?
-            {
-                replSet: {
-                    sslCA: certFileBuf
-                }
-            } :
-            {
-                server: {
-                    sslCA: certFileBuf
-                }
-            }
-        );
+        options.sslCA = fs.readFileSync(connection.sslCAPath);
+        if (connection.hasOwnProperty('sslValidate')) {
+            options.sslValidate = connection.sslValidate;
+        }
+        if (connection.hasOwnProperty('useSSL')) {
+            options.ssl = connection.useSSL;
+        }
     }
 
     db = await MongoClient.connect(uri, options);
