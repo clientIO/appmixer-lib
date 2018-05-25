@@ -33,7 +33,7 @@ module.exports.connect = async function(connection) {
 
     // Set debug level
     if (process.env.LOG_LEVEL) {
-        Logger.setLevel(process.env.LOG_LEVEL);
+        Logger.setLevel(process.env.LOG_LEVEL.toLowerCase());
     }
 
     if (db !== null) {
