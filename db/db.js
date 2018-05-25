@@ -61,7 +61,7 @@ module.exports.connect = async function(connection) {
         if (connection.hasOwnProperty('sslValidate')) {
             options.sslValidate = connection.sslValidate;
         }
-        if (connection.hasOwnProperty('useSSL')) {
+        if (connection.hasOwnProperty('useSSL') && connection.useSSL !== null) {
             options.ssl = connection.useSSL;
         }
     }
