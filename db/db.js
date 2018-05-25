@@ -5,6 +5,7 @@ const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
 const Promise = require('bluebird');
 const fs = require('fs');
+const Logger = require('mongodb').Logger;
 
 let db = null;
 module.exports.db = function() {
@@ -30,6 +31,11 @@ module.exports.ObjectID = ObjectID;
  */
 module.exports.connect = async function(connection) {
 
+    // Set debug level
+    if (process.env.LOG_LEVEL) {
+        Logger.setLevel(process.env.LOG_LEVEL);
+    }
+
     if (db !== null) {
         return db;
     }
@@ -54,6 +60,9 @@ module.exports.connect = async function(connection) {
         options.sslCA = fs.readFileSync(connection.sslCAPath);
         if (connection.hasOwnProperty('sslValidate')) {
             options.sslValidate = connection.sslValidate;
+        }
+        if (connection.hasOwnProperty('useSSL')) {
+            options.ssl = connection.useSSL;
         }
     }
 
