@@ -23,6 +23,9 @@ module.exports.ObjectID = ObjectID;
  * @param {string} connection.host
  * @param {number} connection.port
  * @param {string} connection.dbName
+ * @param {string} connection.uri
+ * @param {string} connection.sslCAPath
+ * @param {boolean} connection.sslValidate
  * @return {Promise}
  */
 module.exports.connect = async function(connection) {
@@ -48,19 +51,10 @@ module.exports.connect = async function(connection) {
 
     // file to cert
     if (connection.sslCAPath) {
-        let certFileBuf = fs.readFileSync(connection.sslCAPath);
-        Object.assign(options, uri.includes('replicaSet') ?
-            {
-                replSet: {
-                    sslCA: certFileBuf
-                }
-            } :
-            {
-                server: {
-                    sslCA: certFileBuf
-                }
-            }
-        );
+        options.sslCA = fs.readFileSync(connection.sslCAPath);
+        if (connection.hasOwnProperty('sslValidate')) {
+            options.sslValidate = connection.sslValidate;
+        }
     }
 
     db = await MongoClient.connect(uri, options);
