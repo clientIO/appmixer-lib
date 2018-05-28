@@ -44,16 +44,13 @@ function* allInputLinks(source, checkUniqueIdPort = true) {
 }
 
 /**
- *
+ * Returns generator, which loops over all output links from a component's output port.
  * @param {Flow} flow
  * @param {string} cid - component Id
  * @param {string} outputPort
  * @return {Iterator<*>}
  */
 function* allOutputLinks(flow, cid, outputPort) {
-
-    // TODO bacha na to, ze uzivatel muze udelat 2 linky z jednoho output portu do jednoho
-    // input portu a tim rict, ze tu zpravu chce zdvojit
 
     const descriptor = flow.getFlowDescriptor();
     for (let componentId in descriptor) {
