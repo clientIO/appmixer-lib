@@ -4,6 +4,8 @@ const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
 const Promise = require('bluebird');
+const fs = require('fs');
+const Logger = require('mongodb').Logger;
 
 let db = null;
 module.exports.db = function() {
@@ -22,35 +24,48 @@ module.exports.ObjectID = ObjectID;
  * @param {string} connection.host
  * @param {number} connection.port
  * @param {string} connection.dbName
+ * @param {string} connection.uri
+ * @param {string} connection.sslCAPath
+ * @param {boolean} connection.sslValidate
  * @return {Promise}
  */
-module.exports.connect = function(connection) {
+module.exports.connect = async function(connection) {
 
-    if (db !== null) {
-        return Promise.resolve(db);
+    // Set debug level
+    if (process.env.LOG_LEVEL) {
+        Logger.setLevel(process.env.LOG_LEVEL.toLowerCase());
     }
 
-    try {
-        check.assert.object(connection, 'Invalid connection object.');
+    if (db !== null) {
+        return db;
+    }
+
+    check.assert.object(connection, 'Invalid connection object.');
+    if (connection.uri) {
+        check.assert.string(connection.uri, 'Invalid connection.uri');
+    } else {
         check.assert.string(connection.host, 'Invalid connection.host.');
         check.assert.number(connection.port, 'Invalid connection.port.');
         check.assert.string(connection.dbName, 'Invalid connection.dbName.');
-    } catch (error) {
-        return Promise.reject(error);
     }
 
-    return new Promise((resolve, reject) => {
-        MongoClient.connect(
-            'mongodb://' + connection.host + ':' + connection.port + '/' + connection.dbName,
-            {
-                promiseLibrary: Promise
-            },
-            (err, connectedDb) => {
-                if (err) {
-                    return reject(err);
-                }
-                db = connectedDb;
-                resolve(connectedDb);
-            });
-    });
+    let uri = connection.uri || 'mongodb://' + connection.host + ':' + connection.port + '/' + connection.dbName;
+
+    let options = {
+        promiseLibrary: Promise
+    };
+
+    // file to cert
+    if (connection.sslCAPath) {
+        options.sslCA = fs.readFileSync(connection.sslCAPath);
+        if (connection.hasOwnProperty('sslValidate')) {
+            options.sslValidate = connection.sslValidate;
+        }
+        if (connection.hasOwnProperty('useSSL') && connection.useSSL !== null) {
+            options.ssl = connection.useSSL;
+        }
+    }
+
+    db = await MongoClient.connect(uri, options);
+    return db;
 };
