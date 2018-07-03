@@ -45,14 +45,13 @@ function* allInputLinks(source, checkUniqueIdPort = true) {
 
 /**
  * Returns generator, which loops over all output links from a component's output port.
- * @param {Flow} flow
+ * @param {Object} descriptor
  * @param {string} cid - component Id
  * @param {string} outputPort
  * @return {Iterator<*>}
  */
-function* allOutputLinks(flow, cid, outputPort) {
+function* allOutputLinks(descriptor, cid, outputPort) {
 
-    const descriptor = flow.getFlowDescriptor();
     for (let componentId in descriptor) {
         if (!descriptor.hasOwnProperty(componentId)) {
             continue;
