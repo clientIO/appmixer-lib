@@ -66,6 +66,7 @@ module.exports.connect = async function(connection) {
         }
     }
 
-    db = await MongoClient.connect(uri, options);
+    const client = await MongoClient.connect(uri, options);
+    db = client.db(connection.dbName);
     return db;
 };
