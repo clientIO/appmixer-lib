@@ -3,6 +3,7 @@
 module.exports = {
     apiDriver: require('./api-driver'),
     db: require('./db/db'),
+    redis: require('./db/redis'),
     lock: {
         mutex: require('./lock/mutex')
     },
