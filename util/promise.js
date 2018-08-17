@@ -83,7 +83,7 @@ module.exports.mapProperties = async (object, callback) => {
 
     let results = [];
     return Promise.map(Object.keys(object), async key => {
-        return Promise.resolve(callback(object[key])).reflect();
+        return Promise.resolve(callback(object[key], key)).reflect();
     }).each(inspection => {
         if (!inspection.isFulfilled()) {
             throw inspection.reason();

@@ -153,7 +153,8 @@ var ApiDriver = function(config) {
         config.transformResponseBody = basicTransformResponseBody;
     }
 
-    this.promSend = Promise.promisify(this.send, { context: this });
+    // TODO hodit do appmixer-lib a zvednout verzi
+    this.promSend = Promise.promisify(this.send, { context: this, multiArgs: true });
     this.config = config;
     this.routesMap = new RouterMap();
 
