@@ -12,7 +12,7 @@
         "check-types": "^7.1.5",
         "handlebars": "^4.0.5",
         "metrohash": "^2.3.0",
-        "mongodb": "^3.0.8",
+        "mongodb": "3.0.8",
         "redis": "^2.8.0",
         "request": "^2.67.0"
     },
