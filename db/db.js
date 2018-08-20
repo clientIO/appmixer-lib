@@ -69,6 +69,6 @@ module.exports.connect = async function(connection) {
     console.log('Connecting to Mongo with URI: ' + uri);
 
     const client = await MongoClient.connect(uri, options);
-    db = client.db(connection.dbName);
+    db = client.db();
     return db;
 };
