@@ -154,7 +154,6 @@ var ApiDriver = function(config) {
     }
 
     this.promSend = Promise.promisify(this.send, { context: this, multiArgs: true });
-    this.promSend = Promise.promisify(this.send, { context: this });
     this.config = config;
     this.routesMap = new RouterMap();
 
