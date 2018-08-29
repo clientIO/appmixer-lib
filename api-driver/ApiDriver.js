@@ -148,12 +148,13 @@ var ApiDriver = function(config) {
     }
 
     config.verbose = !!config.verbose;
+    config.multiArgs = !!config.multiArgs;
 
     if (typeof config.transformResponseBody !== 'function') {
         config.transformResponseBody = basicTransformResponseBody;
     }
 
-    this.promSend = Promise.promisify(this.send, { context: this, multiArgs: true });
+    this.promSend = Promise.promisify(this.send, { context: this, multiArgs: config.multiArgs });
     this.config = config;
     this.routesMap = new RouterMap();
 
