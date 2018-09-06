@@ -9,13 +9,13 @@ let client = null;
 module.exports.client = function() {
 
     if (client === null) {
-        throw new Error('Mongo DB not connected!');
+        throw new Error('Redis DB not connected!');
     }
     return client;
 };
 
 /**
- * Connect to Mongo DB.
+ * Connect to Redis DB.
  * @param {Object} connection
  * @param {string} connection.uri
  * @param {string} connection.caPath
