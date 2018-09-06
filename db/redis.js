@@ -5,10 +5,13 @@ const redis = Promise.promisifyAll(require('redis'));
 const check = require('check-types');
 const fs = require('fs');
 
-let client = null;
+const SINGLETON_NAME = 'appmixer-lib.db.redis.client';
+const singletons = require('../util/singletons');
+
 module.exports.client = function() {
 
-    if (client === null) {
+    const client = singletons.get(SINGLETON_NAME);
+    if (!client) {
         throw new Error('Redis DB not connected!');
     }
     return client;
@@ -24,7 +27,8 @@ module.exports.client = function() {
  */
 module.exports.connect = async function(connection) {
 
-    if (client !== null) {
+    let client = singletons.get(SINGLETON_NAME);
+    if (client) {
         return client;
     }
 
@@ -37,10 +41,11 @@ module.exports.connect = async function(connection) {
     if (connection.useSSL) {
         options.tls = {
             // Necessary only if the server uses the self-signed certificate
-            ca: [ fs.readFileSync(connection.caPath) ]
+            ca: [fs.readFileSync(connection.caPath)]
         };
     }
 
-    client = connection.uri ? redis.createClient(connection.uri, options): redis.createClient();
+    client = connection.uri ? redis.createClient(connection.uri, options) : redis.createClient();
+    singletons.set(SINGLETON_NAME, client);
     return client;
 };

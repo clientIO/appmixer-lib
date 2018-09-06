@@ -7,10 +7,13 @@ const Promise = require('bluebird');
 const fs = require('fs');
 const Logger = require('mongodb').Logger;
 
-let db = null;
+const singletons = require('../util/singletons');
+const SINGLETON_NAME = 'appmixer-lib.db.db.client';
+
 module.exports.db = function() {
 
-    if (db === null) {
+    const db = singletons.get(SINGLETON_NAME);
+    if (!db) {
         throw new Error('Mongo DB not connected!');
     }
     return db;
@@ -36,7 +39,8 @@ module.exports.connect = async function(connection) {
         Logger.setLevel(process.env.LOG_LEVEL.toLowerCase());
     }
 
-    if (db !== null) {
+    let db = singletons.get(SINGLETON_NAME);
+    if (db) {
         return db;
     }
 
@@ -69,6 +73,7 @@ module.exports.connect = async function(connection) {
     console.log('Connecting to Mongo with URI: ' + uri);
 
     const client = await MongoClient.connect(uri, options);
-    db = client.db();
+    db = client.db(connection.dbName);
+    singletons.set(SINGLETON_NAME, db);
     return db;
 };
