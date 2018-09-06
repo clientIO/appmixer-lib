@@ -9,6 +9,7 @@ module.exports = {
     },
     util: {
         array: require('./util/array'),
+        singletons: require('./util/singletons'),
         HttpError: require('./util/http-error'),
         object: require('./util/object'),
         component: require('./util/component'),
