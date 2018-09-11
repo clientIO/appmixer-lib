@@ -1,17 +1,14 @@
 'use strict';
-
 const Promise = require('bluebird');
 const redis = Promise.promisifyAll(require('redis'));
 const check = require('check-types');
 const fs = require('fs');
 
-const SINGLETON_NAME = 'appmixer-lib.db.redis.client';
-const singletons = require('../util/singletons');
+let client = null;
 
 module.exports.client = function() {
 
-    const client = singletons.get(SINGLETON_NAME);
-    if (!client) {
+    if (client === null) {
         throw new Error('Redis DB not connected!');
     }
     return client;
@@ -27,8 +24,7 @@ module.exports.client = function() {
  */
 module.exports.connect = async function(connection) {
 
-    let client = singletons.get(SINGLETON_NAME);
-    if (client) {
+    if (client !== null) {
         return client;
     }
 
@@ -46,6 +42,5 @@ module.exports.connect = async function(connection) {
     }
 
     client = connection.uri ? redis.createClient(connection.uri, options) : redis.createClient();
-    singletons.set(SINGLETON_NAME, client);
     return client;
 };

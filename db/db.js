@@ -7,13 +7,11 @@ const Promise = require('bluebird');
 const fs = require('fs');
 const Logger = require('mongodb').Logger;
 
-const singletons = require('../util/singletons');
-const SINGLETON_NAME = 'appmixer-lib.db.db.client';
+let db = null;
 
 module.exports.db = function() {
 
-    const db = singletons.get(SINGLETON_NAME);
-    if (!db) {
+    if (db === null) {
         throw new Error('Mongo DB not connected!');
     }
     return db;
@@ -39,8 +37,7 @@ module.exports.connect = async function(connection) {
         Logger.setLevel(process.env.LOG_LEVEL.toLowerCase());
     }
 
-    let db = singletons.get(SINGLETON_NAME);
-    if (db) {
+    if (db !== null) {
         return db;
     }
 
@@ -56,7 +53,8 @@ module.exports.connect = async function(connection) {
     let uri = connection.uri || 'mongodb://' + connection.host + ':' + connection.port + '/' + connection.dbName;
 
     let options = {
-        promiseLibrary: Promise
+        promiseLibrary: Promise,
+        useNewUrlParser: true
     };
 
     // file to cert
@@ -74,6 +72,5 @@ module.exports.connect = async function(connection) {
 
     const client = await MongoClient.connect(uri, options);
     db = client.db(connection.dbName);
-    singletons.set(SINGLETON_NAME, db);
     return db;
 };
