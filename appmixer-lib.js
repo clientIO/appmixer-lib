@@ -5,7 +5,8 @@ module.exports = {
     db: require('./db/db'),
     redis: require('./db/redis'),
     lock: {
-        mutex: require('./lock/mutex')
+        mutex: require('./lock/mutex'),
+        method: require('./lock/method')
     },
     util: {
         array: require('./util/array'),
