@@ -22,9 +22,6 @@ module.exports.ObjectID = ObjectID;
 /**
  * Connect to Mongo DB.
  * @param {Object} connection
- * @param {string} connection.host
- * @param {number} connection.port
- * @param {string} connection.dbName
  * @param {string} connection.uri
  * @param {string} connection.sslCAPath
  * @param {boolean} connection.sslValidate
@@ -42,15 +39,7 @@ module.exports.connect = async function(connection) {
     }
 
     check.assert.object(connection, 'Invalid connection object.');
-    if (connection.uri) {
-        check.assert.string(connection.uri, 'Invalid connection.uri');
-    } else {
-        check.assert.string(connection.host, 'Invalid connection.host.');
-        check.assert.number(connection.port, 'Invalid connection.port.');
-        check.assert.string(connection.dbName, 'Invalid connection.dbName.');
-    }
-
-    let uri = connection.uri || 'mongodb://' + connection.host + ':' + connection.port + '/' + connection.dbName;
+    check.assert.string(connection.uri, 'Invalid connection.uri');
 
     let options = {
         promiseLibrary: Promise,
@@ -68,9 +57,9 @@ module.exports.connect = async function(connection) {
         }
     }
     
-    console.log('Connecting to Mongo with URI: ' + uri);
+    console.log('Connecting to Mongo with URI: ' + connection.uri);
 
-    const client = await MongoClient.connect(uri, options);
+    const client = await MongoClient.connect(connection.uri, options);
     db = client.db();
     return db;
 };

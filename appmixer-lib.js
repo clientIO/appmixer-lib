@@ -5,7 +5,8 @@ module.exports = {
     db: require('./db/db'),
     redis: require('./db/redis'),
     lock: {
-        mutex: require('./lock/mutex')
+        mutex: require('./lock/mutex'),
+        method: require('./lock/method')
     },
     util: {
         array: require('./util/array'),
@@ -15,6 +16,7 @@ module.exports = {
         component: require('./util/component'),
         flow: require('./util/flow'),
         PagingAggregator: require('./util/paging-aggregator'),
-        promise: require('./util/promise')
+        promise: require('./util/promise'),
+        commons: require('./util/commons')
     }
 };
