@@ -1,6 +1,6 @@
 {
     "name": "appmixer-lib",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Shared lib folder.",
     "main": "appmixer-lib.js",
     "scripts": {
