@@ -36,6 +36,7 @@ class Method {
             while (this.callbacks.length > 0) {
                 this.callbacks.pop().resolve(result);
             }
+            return result;
         } catch (err) {
             this.inProgress = false;
             while (this.callbacks.length > 0) {

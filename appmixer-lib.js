@@ -10,13 +10,14 @@ module.exports = {
     },
     util: {
         array: require('./util/array'),
-        singletons: require('./util/singletons'),
-        HttpError: require('./util/http-error'),
-        object: require('./util/object'),
+        commons: require('./util/commons'),
         component: require('./util/component'),
         flow: require('./util/flow'),
+        HttpError: require('./util/http-error'),
+        object: require('./util/object'),
         PagingAggregator: require('./util/paging-aggregator'),
         promise: require('./util/promise'),
-        commons: require('./util/commons')
+        singletons: require('./util/singletons'),
+        Stream: require('./util/Stream')
     }
 };
