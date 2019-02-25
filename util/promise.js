@@ -56,7 +56,7 @@ module.exports.mapKeys = async (object, callback) => {
     check.assert.function(callback, 'Invalid callback function');
 
     let results = [];
-    return Promise.map(Object.keys(object), async key => {
+    return Promise.map(Object.keys(object), key => {
         return Promise.resolve(callback(key)).reflect();
     }).each(inspection => {
         if (!inspection.isFulfilled()) {
@@ -82,7 +82,7 @@ module.exports.mapProperties = async (object, callback) => {
     check.assert.function(callback, 'Invalid callback function');
 
     let results = [];
-    return Promise.map(Object.keys(object), async key => {
+    return Promise.map(Object.keys(object), key => {
         return Promise.resolve(callback(object[key], key)).reflect();
     }).each(inspection => {
         if (!inspection.isFulfilled()) {
