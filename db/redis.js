@@ -24,7 +24,7 @@ module.exports.client = function() {
  */
 module.exports.connect = async function(connection) {
 
-    if (client !== null) {
+    if (client !== null && client.connected) {
         return client;
     }
 
