@@ -1,6 +1,5 @@
 'use strict';
-
-const metrohash128 = require('metrohash').metrohash128;
+const hasha = require('hasha');
 const objectUtil = require('./object');
 
 // some helper functions
@@ -49,10 +48,10 @@ function createMappingFunctionFromCSV(csv) {
  * Using previous state compares items of iterable and returns new state and changes
  * @param {Iterable} iterable
  * @param {Map|Array<Array>} previousState
- * @param {string|function(object)s} idMapping
+ * @param {string|function(object)} idMapping
  *         if string, then idMapping value is used as path to id in item
- *         if function, idMapping is called on item to retreive id of that item
- *         !!WARNING!! for components where big load of items is expected, I recomend pass
+ *         if function, idMapping is called on item to retrieve id of that item
+ *         !!WARNING!! for components where big load of items is expected, I recommend pass
  *         own mapping function, because the generated one adds bit more of load.
  * @param {?Object=} options
  * @param {boolean} options.includeOldData when true, function includes difference in changed item
@@ -82,7 +81,7 @@ function checkListForChanges(iterable, previousState, idMapping, options = {}) {
         includeOldData = false,
         mappingFunction = identity,
         stringifyFunction = JSON.stringify.bind(JSON),
-        hashFn = metrohash128
+        hashFn = hasha
     } = options;
 
     let changes = [];
@@ -105,7 +104,8 @@ function checkListForChanges(iterable, previousState, idMapping, options = {}) {
             // new item
             changes.push({
                 item: origItem,
-                oldItem: null
+                oldItem: null,
+                state: 'new'
             });
         } else if (previousItem.hash === hash) {
             // done with this item, get rid of it
@@ -114,7 +114,8 @@ function checkListForChanges(iterable, previousState, idMapping, options = {}) {
             // changed item
             changes.push({
                 item: origItem,
-                oldItem: previousItem.data
+                oldItem: previousItem.data,
+                state: 'changed'
             });
             // done with this item, get rid of it
             previousState.delete(id);
@@ -123,7 +124,8 @@ function checkListForChanges(iterable, previousState, idMapping, options = {}) {
 
     // at this point, previous state contains only items which were removed
     // so add those
-    changes = changes.concat([...previousState.values()].map(state => ({ item: null, oldItem: state.data })));
+    changes = changes.concat([...previousState.values()]
+        .map(state => ({ item: null, oldItem: state.data, state: 'removed' })));
 
     return {
         changes,
