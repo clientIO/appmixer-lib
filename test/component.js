@@ -13,7 +13,7 @@ function generateLoremIpsumList(offset, length) {
     const loremArr = lorem.split(' ');
 
     const list = [];
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
         list.push({
             _id: i,
             tag: loremArr[i + offset],
@@ -25,7 +25,9 @@ function generateLoremIpsumList(offset, length) {
     return list;
 }
 
-function clone(list) { return JSON.parse(JSON.stringify(list)); }
+function clone(list) {
+    return JSON.parse(JSON.stringify(list));
+}
 
 describe('component utils', () => {
 
@@ -44,11 +46,11 @@ describe('component utils', () => {
     listPhase2.shift();
     // add new one
     listPhase2.push({
-            _id: 666,
-            tag: 'noTag',
-            flag: 'x',
-            tstamp: new Date()
-        });
+        _id: 666,
+        tag: 'noTag',
+        flag: 'x',
+        tstamp: new Date()
+    });
 
     let state = [];
 
@@ -106,12 +108,13 @@ describe('component utils', () => {
             } = componentUtils.checkListForChanges(listPhase1, state, '_id',
                 {
                     // omit timestamp
-                    mappingFunction: ({ _id, tag, flag }) => ({ _id, tag, flag })
+                    mappingFunction: ({ _id, tag, flag }) => ({ _id, tag, flag }),
+                    includeOldData: true
                 });
 
             // new state should contain all items
             expect(newState.length).to.equal(LIST_SIZE);
-            // expect 8 changes, ale to be of state 'new'
+            // expect 8 changes, all to be of state 'new'
             expect(changes.filter(ch => ch.state === 'new').length).to.equal(LIST_SIZE);
 
             state = newState;
@@ -125,13 +128,23 @@ describe('component utils', () => {
             } = componentUtils.checkListForChanges(listPhase2, state, '_id',
                 {
                     // omit timestamp
-                    mappingFunction: ({ _id, tag, flag }) => ({ _id, tag, flag })
+                    mappingFunction: ({ _id, tag, flag }) => ({ _id, tag, flag }),
+                    includeOldData: true
                 });
 
             // test changes
-            const expected = [ [1, 'changed'], [3, 'changed'], [666, 'new'], [0, 'removed'], [7, 'removed']];
+            const expected = [[1, 'changed'], [3, 'changed'], [666, 'new'], [0, 'removed'], [7, 'removed']];
             // compare to expectation
-            const result = changes.filter((ch, i) => ch.id === expected[i][0] && ch.state === expected[i][1]);
+            const result = changes.filter((ch, i) => {
+                if (ch.state !== expected[i][1]) {
+                    // if state does not match = error, filter out
+                    return false;
+                }
+                if (ch.state === 'removed') {
+                    return ch.oldItem._id === expected[i][0];
+                }
+                return ch.item['_id'] === expected[i][0];
+            });
             expect(result.length).to.equal(expected.length);
 
             // test state
