@@ -1,11 +1,12 @@
 'use strict';
-const request = require('request');
+const axios = require('axios');
 const Promise = require('bluebird');
 const RouterMap = require('./RouterMap').RouterMap;
 const fs = require('fs');
 const url = require('url');
+const { URL } = require('url');
 
-var out = {
+const out = {
     info: console.log,
     error: console.log
 };
@@ -24,11 +25,15 @@ function safeCallback(callback, response) {
 
 /**
  * @param error
- * @param response
+ * @param status
  * @param {Object} body
  * @returns {*}
  */
-function processError(error, response, body) {
+function processError(error, status, body) {
+
+    if (error?.response?.data) {
+        return error.response.data;
+    }
 
     if (error) {
         if (typeof error === 'string') {
@@ -56,24 +61,24 @@ function processError(error, response, body) {
 
 /**
  * @param error
- * @param response
+ * @param status
  * @param {?Object} body
  * @returns {{error: *, body: ?Object}}
  */
-function processResponse(error, response, body) {
+function processResponse(error, status, body) {
 
-    error = processError(error, response, body);
+    error = processError(error, status, body);
     if (error) {
         body = null;
     }
 
-    var ret = {
+    const ret = {
         error: error,
         body: body
     };
 
-    if (response && response.statusCode) {
-        ret.statusCode = response.statusCode;
+    if (status) {
+        ret.statusCode = status;
     }
 
     return ret;
@@ -86,7 +91,7 @@ function processResponse(error, response, body) {
 function loadLocalRoutesConfiguration(filePath) {
 
     try {
-        var file = fs.readFileSync(filePath, 'utf8');
+        const file = fs.readFileSync(filePath, 'utf8');
         return JSON.parse(file);
     } catch (error) {
         out.error('Routes configuration file error: ' + filePath + '\n' + error.message);
@@ -107,7 +112,7 @@ function basicTransformResponseBody(body) {
  * @constructor
  * @param {?Object} config
  */
-var ApiDriver = function(config) {
+const ApiDriver = function(config) {
 
     // defaults
     config = config || {};
@@ -148,12 +153,13 @@ var ApiDriver = function(config) {
     }
 
     config.verbose = !!config.verbose;
+    config.multiArgs = !!config.multiArgs;
 
     if (typeof config.transformResponseBody !== 'function') {
         config.transformResponseBody = basicTransformResponseBody;
     }
 
-    this.promSend = Promise.promisify(this.send, { context: this });
+    this.promSend = Promise.promisify(this.send, { context: this, multiArgs: config.multiArgs });
     this.config = config;
     this.routesMap = new RouterMap();
 
@@ -169,8 +175,8 @@ var ApiDriver = function(config) {
  */
 ApiDriver.prototype.createCustomFunction = function(routeConfig) {
 
-    var customFn = this.config.customImplementationsModule[routeConfig.rawConfig.customImplementation];
-    var promCustomFn = Promise.promisify(customFn);
+    const customFn = this.config.customImplementationsModule[routeConfig.rawConfig.customImplementation];
+    const promCustomFn = Promise.promisify(customFn);
 
     if (typeof customFn !== 'function') {
         throw new Error(
@@ -183,7 +189,7 @@ ApiDriver.prototype.createCustomFunction = function(routeConfig) {
 
         data = data || {};
         // promisify this.send with binding to this
-        var routeJson = this.routesMap.getRouteJson(routeConfig.fullName, data);
+        const routeJson = this.routesMap.getRouteJson(routeConfig.fullName, data);
 
         if (typeof done === 'function') {
             // if callback, use callback...
@@ -204,7 +210,7 @@ ApiDriver.prototype.createGeneratedFunction = function(routeConfig) {
     return (function(data, done) {
 
         data = data || {};
-        var routeJson = this.routesMap.getRouteJson(routeConfig.fullName, data);
+        const routeJson = this.routesMap.getRouteJson(routeConfig.fullName, data);
 
         if (typeof done === 'function') {
             // if callback, use callback...
@@ -221,15 +227,15 @@ ApiDriver.prototype.createGeneratedFunction = function(routeConfig) {
  */
 ApiDriver.prototype.onRouteConfigCreated = function(routeConfig) {
 
-    var fn = (routeConfig.rawConfig.customImplementation) ?
+    const fn = (routeConfig.rawConfig.customImplementation) ?
         this.createCustomFunction(routeConfig) :
         this.createGeneratedFunction(routeConfig);
 
     // build hierarchy, if needed
-    var item;
-    var active = this;
-    var hierarchy = routeConfig.namespaceSequence;
-    for (var i = 0; i < hierarchy.length; i++) {
+    let item;
+    let active = this;
+    let hierarchy = routeConfig.namespaceSequence;
+    for (let i = 0; i < hierarchy.length; i++) {
         item = hierarchy[i];
         active[item] = active[item] || {};
         active = active[item];
@@ -249,7 +255,6 @@ ApiDriver.prototype.send = function(routeFullName, routeJson, sendParams, done) 
     if (routeJson == null) {
         throw new Error('Unknown route!');
     }
-
     if (!routeJson.uri) {
         throw new Error('Missing uri param for route ' + routeFullName);
     }
@@ -257,31 +262,50 @@ ApiDriver.prototype.send = function(routeFullName, routeJson, sendParams, done) 
         throw new Error('Missing method param for route ' + routeFullName);
     }
 
-    var requestJson = {
+    const requestJson = {
         method: routeJson.method,
-        uri: this.config.baseUrl + routeJson.uri,
-        json: sendParams.json,
-        qs: routeJson.qs || sendParams.qs,
-        formData: routeJson.formData || sendParams.formData,
-        body: routeJson.body || sendParams.body,
-        headers: routeJson.headers,
-        auth: routeJson.auth
+        // this is to avoid exception if user sets this.config.baseUrl to empty string ''
+        url: new URL(routeJson.uri, this.config.baseUrl ? this.config.baseUrl : undefined).toString()
     };
 
-    if (this.config.token) {
-        requestJson.auth = {
-            bearer: this.config.token
-        };
+    if (routeJson.formData || sendParams.formData) {
+        requestJson.data = routeJson.formData || sendParams.formData;
+        requestJson.headers = (routeJson.formData || sendParams.formData).getHeaders();
+    }
+    if (routeJson.auth) {
+        requestJson.auth = routeJson.auth;
+    }
+    if (routeJson.body || sendParams.body) {
+        requestJson.data = routeJson.body || sendParams.body;
+    }
+    if (routeJson.qs || sendParams.qs) {
+        requestJson.params = routeJson.qs || sendParams.qs;
+    }
+    if (routeJson.headers) {
+        requestJson.headers = Object.assign(requestJson.headers || {}, routeJson.headers);
+    }
+    if (sendParams.headers) {
+        requestJson.headers = Object.assign(requestJson.headers || {}, sendParams.headers);
+    }
+    if (sendParams.json) {
+        if (typeof sendParams.json === 'object') {
+            requestJson.data = sendParams.json;
+        }
+        requestJson.json = true;
     }
 
-    request(requestJson, (function(error, response, body) {
+    if (this.config.token) {
+        requestJson.headers = Object.assign(
+            requestJson.headers || {}, { 'Authorization': 'Bearer ' + this.config.token });
+    }
 
-        if (error || ([200, 201, 302].indexOf(response.statusCode) === -1)) {
-            safeCallback(done, processResponse(error, response, body));
+    axios(requestJson).then(response => {
+        if ([200, 201, 202, 302].indexOf(response.status) === -1) {
+            safeCallback(done, processResponse(null, response.status, response.data));
             return;
         }
 
-        if (response.statusCode === 302 && response.headers.location) {
+        if (response.status === 302 && response.headers.location) {
             let parsed = url.parse(response.headers.location);
             this.config.baseUrl = parsed.protocol + '//' + parsed.host;
             routeJson.uri = parsed.path;
@@ -289,32 +313,56 @@ ApiDriver.prototype.send = function(routeFullName, routeJson, sendParams, done) 
         }
 
         try {
-            if (typeof body === 'string') {
-                body = this.config.transformResponseBody(body);
+            if (typeof response.data === 'string') {
+                response.data = this.config.transformResponseBody(response.data);
             }
         } catch (parseError) {
-            safeCallback(done, processResponse(parseError, response, body));
-            return;
+            // even our own API sometimes returns string instead of JSON (POST /stores for example),
+            // in case the response body cannot be parsed, return it as it is
         }
 
-        var responseJson = processResponse(error, response, body);
+        const responseJson = processResponse(null, response.status, response.data);
 
         safeCallback(done, responseJson);
 
         if (this.config.verbose) {
             out.info(routeFullName + ' successfully done.\nsendParams:\t', JSON.stringify(sendParams || {}));
-            out.info('response code: ' + response.statusCode);
-            out.info(JSON.stringify(body, null, '\t'));
+            out.info('response code: ' + response.status);
+            out.info(JSON.stringify(response.data, null, '\t'));
         }
-    }).bind(this));
+    }).catch(error => {
+        safeCallback(done, processResponse(error, error?.response?.status, error?.response?.data));
+    });
 };
 
 /**
- * @param {?string} token
+ * @param {Object} options - classic request-promise object
+ */
+ApiDriver.prototype.sendAsync = function(options) {
+
+    return this.promSend(options.uri || '', options, { json: true });
+};
+
+/**
+ * @param {string} token
+ * @return {ApiDriver}
  */
 ApiDriver.prototype.setAccessToken = function(token) {
 
+    if (!token) {
+        throw new Error('Missing token.');
+    }
     this.config.token = token;
+    return this;
+};
+
+/**
+ * Get JWT token.
+ * @return {string}
+ */
+ApiDriver.prototype.getAccessToken = function() {
+
+    return this.config.token;
 };
 
 /**
@@ -323,6 +371,14 @@ ApiDriver.prototype.setAccessToken = function(token) {
 ApiDriver.prototype.setBaseUrl = function(url) {
 
     this.config.baseUrl = url;
+};
+
+/**
+ * @return {string}
+ */
+ApiDriver.prototype.getBaseUrl = function() {
+
+    return this.config.baseUrl;
 };
 
 module.exports = ApiDriver;

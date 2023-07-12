@@ -1,5 +1,11 @@
 'use strict';
-var Handlebars = require('handlebars');
+
+const querystring = require('querystring');
+const Handlebars = require('handlebars');
+Handlebars.registerHelper('escapeurl', function(url) {
+
+    return new Handlebars.SafeString(querystring.escape(url));
+});
 
 /**
  * Route config.
@@ -8,9 +14,9 @@ var Handlebars = require('handlebars');
  * @param {String} [routeConfig.customImplementationsModule]
  * @constructor
  */
-var RouteConfig = function(fullName, routeConfig) {
+const RouteConfig = function(fullName, routeConfig) {
 
-    var fullNameArray = fullName.split('.');
+    const fullNameArray = fullName.split('.');
 
     /**
      * @type {Object}

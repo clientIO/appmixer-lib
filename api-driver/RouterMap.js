@@ -1,11 +1,11 @@
 'use strict';
-var RouteConfig = require('./RouteConfig');
+const RouteConfig = require('./RouteConfig');
 
 /**
  * Router map.
  * @constructor
  */
-var RouterMap = function() {
+const RouterMap = function() {
     this.routesMap = {};
     this.onRouteConfigCreated = null;
 };
@@ -25,13 +25,13 @@ RouterMap.prototype.initialize = function(configuration) {
     this.onRouteConfigCreated = configuration.onRouteConfigCreated;
     this.configuration = configuration.routes;
 
-    var item;
-    var hasCreateCallback = typeof this.onRouteConfigCreated === 'function';
+    let item;
+    let hasCreateCallback = typeof this.onRouteConfigCreated === 'function';
 
     for (let key in this.configuration) {
         if (this.configuration.hasOwnProperty(key)) {
             item = this.configuration[key];
-            var routeConfig = new RouteConfig(key, item);
+            let routeConfig = new RouteConfig(key, item);
             if (hasCreateCallback) {
                 this.onRouteConfigCreated(routeConfig);
             }
@@ -48,6 +48,6 @@ RouterMap.prototype.initialize = function(configuration) {
  */
 RouterMap.prototype.getRouteJson = function(name, parameters) {
 
-    var routeConfig = this.routesMap[name];
+    let routeConfig = this.routesMap[name];
     return routeConfig ? routeConfig.getJson(parameters) : null;
 };
